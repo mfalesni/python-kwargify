@@ -8,11 +8,20 @@ def kwargify(function):
 
     @wraps(function)
     def _wrapped(**kwargs):
+        f_args = inspect.getargspec(function).args
+        f_defaults = inspect.getargspec(function).defaults
+        defaults = {}
+        if f_defaults is not None:
+            for key, value in zip(f_args[-len(f_defaults):], f_defaults):
+                defaults[key] = value
+
         args = []
-        for arg in inspect.getargspec(function).args:
-            try:
+        for arg in f_args:
+            if arg in kwargs:
                 args.append(kwargs[arg])
-            except KeyError:
+            elif arg in defaults:
+                args.append(defaults[arg])
+            else:
                 raise TypeError("Required parameter {} not found in the context!".format(arg))
         return function(*args)
     return _wrapped
