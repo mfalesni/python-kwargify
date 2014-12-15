@@ -1,29 +1,28 @@
 # -*- coding: utf-8 -*-
-import sys
+import inspect
 
 
-def kwargify(function):
-    from functools import wraps
-    import inspect
-
-    @wraps(function)
-    def _wrapped(**kwargs):
-        f_args = inspect.getargspec(function).args
-        f_defaults = inspect.getargspec(function).defaults
-        defaults = {}
+class kwargify(object):
+    def __init__(self, function):
+        self._f = function
+        self._defaults = {}
+        self._args = inspect.getargspec(self._f).args
+        f_defaults = inspect.getargspec(self._f).defaults
         if f_defaults is not None:
-            for key, value in zip(f_args[-len(f_defaults):], f_defaults):
-                defaults[key] = value
+            for key, value in zip(self._args[-len(f_defaults):], f_defaults):
+                self._defaults[key] = value
 
+    def __call__(self, **kwargs):
         args = []
-        for arg in f_args:
+        for arg in self._args:
             if arg in kwargs:
                 args.append(kwargs[arg])
-            elif arg in defaults:
-                args.append(defaults[arg])
+            elif arg in self._defaults:
+                args.append(self._defaults[arg])
             else:
                 raise TypeError("Required parameter {} not found in the context!".format(arg))
-        return function(*args)
-    return _wrapped
+        return self._f(*args)
 
-sys.modules[__name__] = kwargify
+    @property
+    def __name__(self):
+        return self._f.__name__
