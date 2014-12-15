@@ -7,8 +7,9 @@ class kwargify(object):
         self._f = function
         self._defaults = {}
         self.func_defaults = tuple([])
-        self._args = inspect.getargspec(self._f).args
-        f_defaults = inspect.getargspec(self._f).defaults
+        argspec = inspect.getargspec(self._f)
+        self._args = argspec.args
+        f_defaults = argspec.defaults
         if f_defaults is not None:
             for key, value in zip(self._args[-len(f_defaults):], f_defaults):
                 self._defaults[key] = value
