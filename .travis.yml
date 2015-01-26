@@ -5,5 +5,8 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
-install: "pip install -U pytest"
-script: "py.test -v"
+install:
+  - "pip install -U pytest pytest-cov coveralls"
+script: "py.test -v --cov kwargify"
+after_success:
+    - coveralls

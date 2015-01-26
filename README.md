@@ -2,6 +2,7 @@ python-kwargify
 ===============
 
 [![Build Status](https://travis-ci.org/mfalesni/python-kwargify.svg?branch=master)](https://travis-ci.org/mfalesni/python-kwargify)
+[![Coverage Status](https://coveralls.io/repos/mfalesni/python-kwargify/badge.svg)](https://coveralls.io/r/mfalesni/python-kwargify)
 [![Downloads](https://pypip.in/download/kwargify/badge.svg?style=flat)](https://pypi.python.org/pypi/kwargify/)
 [![Latest version](https://pypip.in/version/kwargify/badge.svg?style=flat)](https://pypi.python.org/pypi/kwargify/)
 [![Supported Python versions](https://pypip.in/py_versions/kwargify/badge.svg?style=flat)](https://pypi.python.org/pypi/kwargify/)
