@@ -2,67 +2,45 @@
 import inspect
 
 
-class kwargify(object):
-    def __init__(self, function):
-        self._method = hasattr(function, "im_func") or type(function).__name__ == "method"
-        self._f = function
-        self._defaults = {}
-        self.func_defaults = tuple([])
-        argspec = inspect.getargspec(self._f)
-        if self._method:
-            self._args = argspec.args[1:]
-        else:
-            self._args = argspec.args
-        f_defaults = argspec.defaults
-        if f_defaults is not None:
-            for key, value in zip(self._args[-len(f_defaults):], f_defaults):
-                self._defaults[key] = value
+def kwargify(wrapped):
+    _method = hasattr(wrapped, "im_func") or type(wrapped).__name__ == "method"
+    _defaults = {}
+    argspec = inspect.getargspec(wrapped)
+    if _method:
+        _args = argspec.args[1:]
+    else:
+        _args = argspec.args
+    f_defaults = argspec.defaults
+    if f_defaults is not None:
+        for key, value in zip(_args[-len(f_defaults):], f_defaults):
+            _defaults[key] = value
 
-    def __call__(self, *args, **kwargs):
+    def wrapper(*args, **kwargs):
         pass_args = []
-        if len(args) > len(self._args):
+        if len(args) > len(_args):
             raise TypeError(
                 "Too many parameters passed! ({} passed, {} possible)".format(
-                    len(args), len(self._args)))
+                    len(args), len(_args)))
         for arg in args:
             pass_args.append(arg)
-        for arg in self._args[len(args):]:
+        for arg in _args[len(args):]:
             if arg in kwargs:
                 pass_args.append(kwargs[arg])
-            elif arg in self._defaults:
-                pass_args.append(self._defaults[arg])
+            elif arg in _defaults:
+                pass_args.append(_defaults[arg])
             else:
                 raise TypeError("Required parameter {} not found in the context!".format(arg))
-        return self._f(*pass_args)
+        return wrapped(*pass_args)
 
-    @property
-    def __name__(self):
-        return self._f.__name__
-
-    @property
-    def __doc__(self):
-        return self._f.__doc__
-
-    @property
-    def func_closure(self):
-        return self._f.func_closure
-
-    @property
-    def func_code(self):
-        return self._f.func_code
-
-    @property
-    def func_dict(self):
-        return self._f.func_dict
-
-    @property
-    def func_doc(self):
-        return self._f.func_doc
-
-    @property
-    def func_globals(self):
-        return self._f.func_globals
-
-    @property
-    def func_name(self):
-        return self._f.func_name
+    # Doing the work of functools.wraps from python 3.2+
+    assigned = ('__module__', '__name__', '__qualname__', '__doc__', '__annotations__')
+    for attr in assigned:
+        try:
+            value = getattr(wrapped, attr)
+        except AttributeError:
+            pass
+        else:
+            setattr(wrapper, attr, value)
+    vars(wrapper).update(vars(wrapped))
+    wrapper.__wrapped__ = wrapped
+    return wrapper

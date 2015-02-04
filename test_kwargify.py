@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+
 from kwargify import kwargify
 
 
@@ -137,3 +138,41 @@ class TestKwargifyMethod(object):
 
     def test_override_default_with_kwarg(self, o):
         assert kwargify(o.withdefault)(1, b=2)["b"] == 2
+
+
+def test_wrapped_method():
+    # method wrapping should work the same as function wrapping,
+    # so this only does a minimum of sanity checks
+    class Foo(object):
+        @kwargify
+        def bar(self, x, y, z):
+            return x, y, z
+
+    f = Foo()
+    args = 1, 2, 3
+
+    # method fails correctly with incorrect args, just like a function does
+    with pytest.raises(TypeError):
+        f.bar(**dict(zip(('x', 'y'), args)))
+
+    # This should not explode (self is handled correctly)
+    ret = f.bar(**dict(zip(('x', 'y', 'z'), args)))
+
+    # Values should be returned in the same way that they were given
+    assert ret == args
+
+
+def test_wrapped():
+    # double check that the function wrapper does its job
+    def f():
+        """doctring!"""
+        pass
+    f.custom_attr = True
+
+    wrapped_f = kwargify(f)
+    # __wrapped__ should be set
+    assert wrapped_f.__wrapped__ is f
+    # dunder attrs should be copied over
+    assert wrapped_f.__doc__ == f.__doc__
+    # any public attrs on the wrapped func should be available
+    assert wrapped_f.custom_attr
