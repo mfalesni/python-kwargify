@@ -176,3 +176,42 @@ def test_wrapped():
     assert wrapped_f.__doc__ == f.__doc__
     # any public attrs on the wrapped func should be available
     assert wrapped_f.custom_attr
+
+
+def test_wrap_method():
+    """Tst whether wrapping already existing method works."""
+    class A(object):
+        def a(self):
+            return True
+
+        def b(self, a, b):
+            return locals()
+
+        def c(self, a, b=None):
+            return locals()
+
+    a = A()
+    k_a = kwargify(a.a)
+    k_b = kwargify(a.b)
+    k_c = kwargify(a.c)
+
+    # Plain function
+    assert k_a()
+
+    # Without nonrequired parameters
+    with pytest.raises(TypeError):
+        k_b()
+
+    result = k_b(1, 2)
+    assert result["a"] == 1
+    assert result["b"] == 2
+
+    # With nonrequired params
+    with pytest.raises(TypeError):
+        k_c()
+
+    result_1 = k_c(1, 2)
+    result_2 = k_c(1)
+    assert result_1["a"] == result_2["a"] == 1
+    assert result_1["b"] == 2
+    assert result_2["b"] is None
