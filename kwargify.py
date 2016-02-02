@@ -2,10 +2,16 @@
 import inspect
 
 
-def kwargify(wrapped):
-    _method = hasattr(wrapped, "im_func") or type(wrapped).__name__ == "method"
+def kwargify(a_callable):
+    call_target = a_callable
+    if inspect.isclass(a_callable):
+        # Pull the __init__
+        a_callable = a_callable.__init__
+        _method = True
+    else:
+        _method = hasattr(a_callable, "im_func") or type(a_callable).__name__ == "method"
     _defaults = {}
-    argspec = inspect.getargspec(wrapped)
+    argspec = inspect.getargspec(a_callable)
     if _method:
         _args = argspec.args[1:]
     else:
@@ -30,17 +36,17 @@ def kwargify(wrapped):
                 pass_args.append(_defaults[arg])
             else:
                 raise TypeError("Required parameter {} not found in the context!".format(arg))
-        return wrapped(*pass_args)
+        return call_target(*pass_args)
 
     # Doing the work of functools.wraps from python 3.2+
     assigned = ('__module__', '__name__', '__qualname__', '__doc__', '__annotations__')
     for attr in assigned:
         try:
-            value = getattr(wrapped, attr)
+            value = getattr(a_callable, attr)
         except AttributeError:
             pass
         else:
             setattr(wrapper, attr, value)
-    vars(wrapper).update(vars(wrapped))
-    wrapper.__wrapped__ = wrapped
+    vars(wrapper).update(vars(a_callable))
+    wrapper.__wrapped__ = a_callable
     return wrapper
