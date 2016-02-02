@@ -215,3 +215,15 @@ def test_wrap_method():
     assert result_1["a"] == result_2["a"] == 1
     assert result_1["b"] == 2
     assert result_2["b"] is None
+
+
+def test_wrap_class_constructor():
+    class A(object):
+        def __init__(self, a, b=None):
+            self.a = a
+            self.b = b
+
+    cons = kwargify(A)
+    a = cons(a=1)
+    assert a.a == 1
+    assert a.b is None
